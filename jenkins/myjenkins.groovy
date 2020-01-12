@@ -1,5 +1,5 @@
 def getGitCode() {
-	git branch: params.gitBranch, credentialsId: 'myCred', url: 'ssh://git@bitbucket.org:company/repo.git'
+	git branch: params.gitBranch, credentialsId: 'myCred2', url: 'ssh://git@bitbucket.org:company/repo.git'
 }
 
 def ansiblePlaybook() {
