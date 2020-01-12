@@ -1,0 +1,12 @@
+{% extends "basemiddle.html" %}
+{% block title %} Текущее время {% endblock %}
+
+{% block content %}
+    <p>Сейчас {{ curdt|date:"Y j M, Y H:i:s" }}</p>
+    <p>Company - {{ company }}</p>
+    <ul>
+        {% for i in i_list %}
+        <li>{{ i }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

@@ -1,0 +1,59 @@
+version: '3.6'
+services:
+    {{ django.name }}:
+        image: {{ django.img }}:{{ django.img_tag }}
+        restart: always
+        hostname: {{ django.name }}
+        container_name: {{ django.name }}
+        ports:
+            - "{{ django.in_port }}:{{ django.out_port }}"
+        working_dir: /src
+        command: bash -c "./manage.py migrate && gunicorn mysite.wsgi:application -b 0.0.0.0:8000 --log-level=debug" # && ./manage.py runserver 0.0.0.0:{{ django.out_port }}"
+        links:
+          - {{ postgres.name }}
+        networks:
+            myweb:
+              ipv4_address: 172.16.238.3
+            default:
+    {{ nginx.name }}:
+       image: {{ nginx.img }}:{{ nginx.img_tag }}
+       restart: always
+       hostname: {{ nginx.name }}
+       container_name: {{ nginx.name }}
+#       volumes:
+#         - {{ nginx.host_volume }}:{{ nginx.docker_volume }}:rw
+       ports:
+         - "{{ nginx.in_port }}:{{ nginx.out_port }}"
+#         - "{{ nginx.in_port_ssl }}:{{ nginx.out_port_ssl }}"
+       links:
+          - {{ django.name }}
+       networks:
+           myweb:
+             ipv4_address: 172.16.238.4
+           default:
+    {{ postgres.name }}:
+       image: {{ postgres.img }}:{{ postgres.img_tag }}
+       restart: always
+       hostname: {{ postgres.name }}
+       container_name: {{ postgres.name }}
+       ports:
+         - "{{ postgres.in_port }}:{{ postgres.out_port }}"
+       environment:
+          - POSTGRES_PASSWORD={{ postgres.pass }}
+          - POSTGRES_USER={{ postgres.user }}
+          - POSTGRES_DB={{ postgres.db }}
+       networks:
+          myweb:
+            ipv4_address: 172.16.238.2
+          default:
+
+networks:
+  myweb:
+    driver: bridge
+    internal: true
+    ipam:
+     driver: default
+     config:
+       - subnet: 172.16.238.0/24
+  default:
+    driver: bridge

@@ -1,0 +1,64 @@
+---
+# defaults file for testrole -->
+docker_work_dir: "/tmp/akafkatest"
+
+# Dockerfile -->
+# alpine ->
+alpine_ver: 3.7
+# python ->
+py3_ver: 3.7
+# local resources ->
+localres: someapplocation.site.ru:4999/centospython26
+index_url: "https://"
+trusted_host: adress_without_http
+# alpine packages ->
+apk_pckg: curl make python3 bash gcc build-base postgresql-dev python3-dev memcached libmemcached-dev zlib-dev python-dev
+# sqlite installation ->
+sqlite:
+  download_archive_name: sqlite-autoconf-3300100
+  output_archive_name: sql3
+  address: https://www.sqlite.org/2019/sqlite-autoconf-3300100.tar.gz --output sql3.tar.gz
+# pip ->
+pip_folder: piplibs
+# my djanggo project ->
+prj_name: mysite
+dj_expose_port: 8000
+
+# docker-compose -->
+# django ->
+django:
+  img: djangopy3
+  img_tag: 2
+  name: djangostore
+  in_port: 8080
+  out_port: 8000
+# nginx ->
+nginx:
+  img: nginx
+  img_tag: alpine
+  name: web_nginx
+  host_volume: /tmp/mynginx
+  cert_folder: nginxcert
+  docker_volume: /etc/nginx/conf.d
+  logs_folder: nlogs
+  in_port: 8090
+  in_port_ssl: 8093
+  out_port: 80
+  out_port_ssl: 443
+# postgresql ->
+postgres:
+  img: postgres
+  img_tag: 11.6-alpine
+  name: webdb
+  in_port: 15432
+  out_port: 5432
+  pass: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          38626535616464616237386564393164633431353734636165663734313034613837313839396330
+          3061323030363565613335633333383833306461613465310a633137363565396137396233636334
+          38383034336439366163663131323035326438363836303437343065656236316162373764353233
+          3032636437396639620a386565623066376261393939613432356665343635353436333739333236
+          6335
+  user: postgres
+  db: pgdb
+

@@ -1,0 +1,6 @@
+{% extends "basemiddle.html" %}
+{% block title %} Будущее время {% endblock %}
+
+{% block content %}
+<p>Через {{ offset }} час(а) будет {{ next_time|date:"Y j M, Y H:i:s" }}</p>
+{% endblock %}

@@ -1,0 +1,58 @@
+ARG APP_OS=alpine
+ARG APP_OS_VER={{ alpine_ver }}
+FROM ${APP_OS}:${APP_OS_VER} AS alpinebuild
+
+# cmt: for the python img, but it's too big
+# FROM python:{{ py3_ver }}
+# FROM {{ localres }} # for the local resource
+
+USER root
+
+# cmt: for the non Internet web:
+# ARG INDEX_URL={{ index_url }}
+# ARG TRUSTED_HOST={{ trusted_host }}
+# ENV PIP_INDEX_URL=${INDEX_URL}
+# ENV PIP_TRUSTED_HOST=${TRUSTED_HOST}
+# RUN pip3 install --index-url=$PIP_INDEX_URL --trusred-host $PIP_TRUSTED_HOST -r requirements.txt # for the local resource
+
+# cmt: for the RU locale
+# RUN cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime
+# RUN echo "Europe/Moscow" > /etc/timezone
+
+# cmt: for the centos img, not alpine
+# RUN yum update -y \
+#     && yum install -y https://centos7.iuscommunity.org/ius-release.rpm \
+#     && yum install -y python36u python36u-libs python36u-devel python36u-pip \
+#     && yum install -y which gcc \ 
+#     && yum install -y openldap-devel 
+
+# for the alpine img
+RUN apk add --no-cache {{ apk_pckg }} \
+    && rm -rf /var/cache/apk/*
+
+# for the installation of sqlite3.10
+WORKDIR /tmp
+RUN curl -L {{ sqlite.address }}
+RUN tar -xzvf ./{{ sqlite.output_archive_name }}.tar.gz
+WORKDIR /tmp/{{ sqlite.download_archive_name }}
+RUN ./configure && make && make install
+RUN mv ./sqlite3 /usr/bin/sqlite3
+RUN export LD_LIBRARY_PATH="/usr/local/lib"
+
+# for the python pip3 installation
+WORKDIR /tmp
+COPY ./{{ pip_folder }}/requirements.txt /tmp/
+RUN pip3 install --upgrade pip && \
+    pip3 install -r requirements.txt
+
+# my django project
+COPY ./{{ prj_name }} /src
+WORKDIR /src
+RUN chmod +x ./manage.py
+CMD ["./manage.py","migrate"]
+# ENTRYPOINT ["/bin/bash"]
+
+
+# docker will be listen to this port
+EXPOSE {{ dj_expose_port }}
+

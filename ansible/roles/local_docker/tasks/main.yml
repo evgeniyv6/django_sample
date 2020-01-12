@@ -1,0 +1,90 @@
+---
+- block:
+    - name: create {{ docker_work_dir }} dir on the {{ inventory_hostname }}
+      file:
+        path: "{{ docker_work_dir }}/{{ item }}"
+        state: directory
+      loop:
+        - django
+        - nginx
+        - dc
+
+    - name: copy big files
+      copy:
+        src: "{{ prj_name }}"
+        dest: "{{ docker_work_dir }}/nginx/"
+        mode: 0600
+      tags:
+        - copy_big
+
+    - name: create {{ pip_folder }} dir
+      file:
+        path: "{{ docker_work_dir }}/django/{{ pip_folder }}"
+        state: directory
+
+    - name: copy files
+      copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        mode: "{{ item.mode }}"
+      register: check_copy
+      loop:
+        - {src: '.env', dest: '{{ docker_work_dir }}/dc', mode: '0600'}
+        - {src: 'requirements.txt', dest: '{{ docker_work_dir }}/django/{{ pip_folder }}', mode: '0600'}
+        - {src: '{{ prj_name }}', dest: '{{ docker_work_dir }}/django/', mode: '0600'}
+        - {src: 'public_key.crt', dest: '{{ docker_work_dir }}/nginx/', mode: '0600'}
+        - {src: 'private_key.pem', dest: '{{ docker_work_dir }}/nginx/', mode: '0600'}
+        - {src: 'rootCA.crt', dest: '{{ docker_work_dir }}/nginx/', mode: '0600'}
+
+    - name: template files
+      template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        mode: "{{ item.mode }}"
+      register: check_tmp
+      loop:
+        - {src: 'Dockerfile_django.j2', dest: '{{ docker_work_dir }}/django/Dockerfile', mode: '0600'}
+        - {src: 'Dockerfile_nginx.j2', dest: '{{ docker_work_dir }}/nginx/Dockerfile', mode: '0600' }
+        - {src: 'default.conf.j2', dest: '{{ docker_work_dir }}/nginx/default.conf', mode: '0600' }
+        - {src: 'docker-compose.yml.j2', dest: '{{ docker_work_dir }}/dc/docker-compose.yml', mode: '0600'}
+        - {src: 'settings.py.j2', dest: '{{ docker_work_dir }}/django/{{ prj_name }}/{{ prj_name }}/settings.py', mode: '0600'}
+  tags:
+    - copy
+
+- block:
+    - name: pull postgresql
+      docker_image:
+        name: "{{ postgres.img }}"
+        tag: "{{ postgres.img_tag }}"
+        source: pull
+      register: pgpull
+
+    - name: create django and nginx images
+      docker_image:
+        name: "{{ item.img }}"
+        tag: "{{ item.tag }}"
+        build:
+          path: "{{ item.fldr }}"
+          pull: yes
+        state: present
+        source: build
+      register: dnimg
+      loop:
+        - {img: '{{ django.img }}', tag: '{{ django.img_tag }}', fldr: '{{ docker_work_dir }}/django'}
+        - {img: '{{ nginx.img }}', tag: '{{ nginx.img_tag }}', fldr: '{{ docker_work_dir }}/nginx'}
+  tags:
+    - docker
+
+- block:
+    - name: start container
+      docker_compose:
+         project_src: "{{ docker_work_dir }}/dc"
+         restarted: "{{ check_tmp is changed or check_copy is changed }}"
+      register: dcstart
+
+    - name: if previous fail
+      shell: "docker-compose -f {{ docker_work_dir }}/dc/docker-compose.yml up -d --build"
+      when: dcstart is failed
+  tags:
+    - docker_cmp
+...

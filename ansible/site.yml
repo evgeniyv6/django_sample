@@ -1,0 +1,7 @@
+---
+- name: deploy
+  hosts: all
+  gather_facts: False
+  roles:
+    - local_docker
+...

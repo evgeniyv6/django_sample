@@ -1,0 +1,7 @@
+django
+requests
+urllib3
+sqlparse
+psycopg2
+pylibmc
+gunicorn
