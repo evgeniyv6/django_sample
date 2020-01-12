@@ -1,0 +1,14 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+venv/
+env/
+.idea/
+.DS_Store
+ansible/roles/local_docker/files/*_key.*
+ansible/roles/local_docker/files/*.csr
+ansible/roles/local_docker/files/rootCA*

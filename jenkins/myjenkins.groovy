@@ -14,8 +14,8 @@ def ansiblePlaybook() {
 }
 
 node('master') {
+  timestamps {
   try {
-    timestamps {
     stage('Getting GIT') {
       println("get code in to the ${WORKSPACE}")
       getGitCode()
@@ -27,6 +27,6 @@ node('master') {
     println("We catch the error: ${err}")
   } finally {
     cleanWs()
+    }
   }
-}
 }
