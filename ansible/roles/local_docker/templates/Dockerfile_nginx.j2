@@ -2,10 +2,10 @@ FROM {{ nginx.img }}:{{ nginx.img_tag }}
 WORKDIR /opt
 RUN mkdir ./{{ nginx.cert_folder }}
 RUN mkdir ./{{ nginx.logs_folder }}
-WORKDIR /opt/{{ nginx.cert_folder }}
-COPY ./private_key.pem ./
-COPY ./public_key.crt ./
-COPY ./rootCA.crt ./
+# WORKDIR /opt/{{ nginx.cert_folder }}
+# COPY ./private_key.pem ./
+# COPY ./public_key.crt ./
+# COPY ./rootCA.crt ./
 WORKDIR /etc/nginx/conf.d
 RUN rm -f ./default.conf
 COPY ./default.conf ./

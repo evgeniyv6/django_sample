@@ -32,9 +32,6 @@
         - {src: '.env', dest: '{{ docker_work_dir }}/dc', mode: '0600'}
         - {src: 'requirements.txt', dest: '{{ docker_work_dir }}/django/{{ pip_folder }}', mode: '0600'}
         - {src: '{{ prj_name }}', dest: '{{ docker_work_dir }}/django/', mode: '0600'}
-        - {src: 'public_key.crt', dest: '{{ docker_work_dir }}/nginx/', mode: '0600'}
-        - {src: 'private_key.pem', dest: '{{ docker_work_dir }}/nginx/', mode: '0600'}
-        - {src: 'rootCA.crt', dest: '{{ docker_work_dir }}/nginx/', mode: '0600'}
 
     - name: template files
       template:
